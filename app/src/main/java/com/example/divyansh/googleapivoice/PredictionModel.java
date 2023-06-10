@@ -1,14 +1,16 @@
 package com.example.divyansh.googleapivoice;
 
+import android.widget.ImageView;
+
 public class PredictionModel {
     // string predicted_word for storing predicted_word
     // and imgid for storing image id.
     private String predicted_word;
-    private int imgid;
+    private ImageView predicted_image;
 
-    public PredictionModel(String predicted_word, int imgid) {
+    public PredictionModel(String predicted_word, ImageView imgid) {
         this.predicted_word = predicted_word;
-        this.imgid = imgid;
+        this.predicted_image = predicted_image;
     }
 
     public String get_word() {
@@ -19,11 +21,11 @@ public class PredictionModel {
         this.predicted_word = predicted_word;
     }
 
-    public int getImgid() {
-        return imgid;
+    public ImageView getImgid() {
+        return predicted_image;
     }
 
     public void setImgid(int imgid) {
-        this.imgid = imgid;
+        this.predicted_image = predicted_image;
     }
 }

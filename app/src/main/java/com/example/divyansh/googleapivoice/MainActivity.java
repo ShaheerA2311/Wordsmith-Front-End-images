@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.graphics.Typeface;
+import android.media.Image;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
@@ -21,6 +22,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import androidx.core.content.res.ResourcesCompat;
 import android.util.Log;
+import android.util.Pair;
 import android.util.TypedValue;
 import android.view.Gravity;
 import android.view.View;
@@ -83,7 +85,8 @@ public class MainActivity extends AppCompatActivity implements
     //WordGrid
     private GridView wordGrid;
     ArrayList<String> predictions = new ArrayList<>();
-    //final int[] images = {R.drawable.image1, R.drawable.image2, R.drawable.image3, R.drawable.image4};
+    ArrayList<String> images = new ArrayList<>();
+
     //Preferences
     String store_theme;
     String store_font;
@@ -151,7 +154,7 @@ public class MainActivity extends AppCompatActivity implements
             @Override
             public void onClick(View view) {
                 returnedText.setText("Speak to start");
-                makeWordGrid(null);
+                makeWordGrid(null, null);
             }
         });
 
@@ -238,10 +241,9 @@ public class MainActivity extends AppCompatActivity implements
 
     private class AsyncTaskRunner extends AsyncTask<String, String, ArrayList<String>> {
         private ArrayList<String> asyncPredictions = new ArrayList<>();
+        private ArrayList<String> image_urls = new ArrayList<>();
 
         private String createTempSymbolToken(){
-
-
             OkHttpClient client = new OkHttpClient();
             MediaType mediaType = MediaType.parse("application/json");
 
@@ -258,6 +260,141 @@ public class MainActivity extends AppCompatActivity implements
 
             return "abc";
 
+        }
+
+        protected String GetSymbolsAccessToken(){
+
+            OkHttpClient client = new OkHttpClient();
+            MediaType mediaType = MediaType.parse("application/json");
+
+            String secret = "temp::2023-06-10:1686429791:d7d6de178e543ff17d17544f:ee0dafb7ed940d31d472f10f5c0458e17ed73a89400c23f87af98acaec5b74628dcf8ac3b28a8815281dcc09140a3cf69fb4efbd4b0b8b1a364586385600de0a";
+
+            RequestBody body = RequestBody.create(mediaType, "{\"secret\":\""+secret+"\"}");
+
+            //while loop calls api until it works
+            boolean error = true;
+            //JSONArray img = new JSONArray();
+            String ACCESS_TOKEN = new String();
+
+            while(error){
+                Request request = new Request.Builder()
+                        .url("https://opensymbols.org/api/v2/token")
+                        .post(body)
+                        .build();
+
+                Response response = null;
+
+                try {
+                    response = client.newCall(request).execute();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                String responseString = null;
+                try {
+                    responseString = response.body().string();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+
+                Log.d("response", responseString);
+
+                JSONObject responseJSONobj = null;
+                try {
+                    responseJSONobj = new JSONObject(responseString);
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+
+                try{
+                    ACCESS_TOKEN = responseJSONobj.getString("access_token");
+                    error = false;
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                    Log.d("error?", "could not get access token");
+                }
+
+            }
+
+            return ACCESS_TOKEN;
+        }
+
+        protected ArrayList<String> imagesForEachPred(ArrayList<String> asyncPredictions, String ACCESS_TOKEN){
+
+            OkHttpClient client = new OkHttpClient();
+
+            //String search_term = null;
+            ArrayList<String> image_urls = new ArrayList<>();
+
+            for(String search_term : asyncPredictions){
+
+                //while loop calls api until it works
+                boolean error = true;
+                boolean find = false;
+                //JSONArray img = new JSONArray();
+
+
+                while(error) {
+                    Request request = new Request.Builder()
+                            .url("https://opensymbols.org/api/v2/symbols")
+                            .get()
+                            .addHeader("Authorization", ACCESS_TOKEN)
+                            .addHeader("q", search_term)
+                            .build();
+
+
+                    Response response = null;
+                    try {
+                        response = client.newCall(request).execute();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    String responseString = null;
+                    try {
+                        responseString = response.body().string();
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+
+                    Log.d("response", responseString);
+
+                    JSONArray responseJSONArray = null;
+                    try {
+                        responseJSONArray = new JSONArray(responseString);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                    }
+
+
+                    JSONObject img = null;
+                    /*
+                    while(!find){
+
+                    }
+                    */
+                    try {
+                        img = responseJSONArray.getJSONObject(0);
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("error?", "could not get image");
+                    }
+
+                    String image_url = null;
+                    try {
+                        image_url = img.getString("image_url");
+                        image_urls.add(image_url);
+                        error = false;
+                    } catch (JSONException e) {
+                        e.printStackTrace();
+                        Log.d("error?", "could not get image url");
+                    }
+
+                }
+
+            }
+
+
+            return image_urls;
         }
 
 
@@ -406,189 +543,42 @@ public class MainActivity extends AppCompatActivity implements
             }
 
             Log.i("predictions", String.valueOf(asyncPredictions));
-
+            predictions = asyncPredictions; //copies value to global variable
 
             //open symbols api
-
-
-
-
+            String ACCESS_TOKEN = new String();
+            ACCESS_TOKEN = GetSymbolsAccessToken();
+            image_urls = imagesForEachPred(asyncPredictions, ACCESS_TOKEN);
+            images = image_urls;//copies value to global variable
 
             return asyncPredictions;
         }
 
-        protected String GetSymbolsAccessToken(){
 
-            OkHttpClient client = new OkHttpClient();
-            MediaType mediaType = MediaType.parse("application/json");
-
-            String secret = "temp::2023-06-07:1686165187:2f7b981bbaf55d823e3da3cd:b1c339fb4a63e90eb9a5322ca9f7056c6e90b4861d26ed9febcb04e92b5e06f3e5c78c302d2382c33cbce62eac68bcdacbcce4839cad6921d04ce17f841bee02";
-
-            RequestBody body = RequestBody.create(mediaType, "{\"secret\":\""+secret+"\"}");
-
-
-
-
-            //while loop calls api until it works
-            boolean error = true;
-            //JSONArray img = new JSONArray();
-            String ACCESS_TOKEN = new String();
-
-            while(error){
-                Request request = new Request.Builder()
-                        .url("https://opensymbols.org/api/v2/token")
-                        .post(body)
-                        .build();
-
-                Response response = null;
-
-                try {
-                    response = client.newCall(request).execute();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                String responseString = null;
-                try {
-                    responseString = response.body().string();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-                Log.d("response", responseString);
-
-                JSONObject responseJSONobj = null;
-                try {
-                    responseJSONobj = new JSONObject(responseString);
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                }
-
-                try{
-                    ACCESS_TOKEN = responseJSONobj.getString("access_token");
-                    error = false;
-                } catch (JSONException e) {
-                    e.printStackTrace();
-                    Log.d("error?", "could not get access token");
-                }
-
-            }
-
-            return ACCESS_TOKEN;
-        }
-
-
-
-        protected ArrayList<String> imagesForEachPred(ArrayList<String> image_urls, ArrayList<String> asyncPredictions, String ACCESS_TOKEN){
-
-            OkHttpClient client = new OkHttpClient();
-
-            //String search_term = null;
-
-
-            for(String search_term : asyncPredictions){
-
-                //while loop calls api until it works
-                boolean error = true;
-                boolean find = false;
-                //JSONArray img = new JSONArray();
-
-
-                while(error) {
-                    Request request = new Request.Builder()
-                            .url("https://opensymbols.org/api/v2/symbols")
-                            .get()
-                            .addHeader("Authorization", ACCESS_TOKEN)
-                            .addHeader("q", search_term)
-                            .build();
-
-
-                    Response response = null;
-                    try {
-                        response = client.newCall(request).execute();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-                    String responseString = null;
-                    try {
-                        responseString = response.body().string();
-                    } catch (IOException e) {
-                        e.printStackTrace();
-                    }
-
-                    Log.d("response", responseString);
-
-                    JSONArray responseJSONArray = null;
-                    try {
-                        responseJSONArray = new JSONArray(responseString);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                    }
-
-
-                    JSONObject img = null;
-                    /*
-                    while(!find){
-
-                    }
-                    */
-                    try {
-                        img = responseJSONArray.getJSONObject(0);
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        Log.d("error?", "could not get image");
-                    }
-
-                    String image_url = null;
-                    try {
-                        image_url = img.getString("image_url");
-                        image_urls.add(image_url);
-                        error = false;
-                    } catch (JSONException e) {
-                        e.printStackTrace();
-                        Log.d("error?", "could not get image url");
-                    }
-
-                }
-
-            }
-
-
-            return image_urls;
-        }
 
         @Override
         protected void onPostExecute(ArrayList<String> asyncPredictions) {
             super.onPostExecute(asyncPredictions);
             Log.d("asyncPredictions", String.valueOf(asyncPredictions));
-            makeWordGrid(asyncPredictions); //makes grid
-            predictions = asyncPredictions; //copies value to global variable
+            Log.d("image urls", String.valueOf(images));
+            makeWordGrid(predictions, images); //makes grid
         }
     }
 
-    public void makeWordGrid(ArrayList<String> predictedWords){
-        predictionModelArrayList = new ArrayList<PredictionModel>();
+
+    public void makeWordGrid(ArrayList<String> predictedWords, ArrayList<String> image_urls){
 
         //initialise and populate prediction array list
         predictionModelArrayList = new ArrayList<PredictionModel>();
-        for (String predictedWord : predictedWords) {
-            predictionModelArrayList.add((new PredictionModel(predictedWord, R.drawable.wordsmith_logo_xml)));
-        }
 
-        //make new adapter and apply to grid
-        PredictionGridAdapter adapter = new PredictionGridAdapter(this, predictionModelArrayList);
-        wordGrid.setAdapter(adapter);
-    }
-
-    public void makeWordGrid2(ArrayList<String> predictedWords, ArrayList<String> image_urls){
-
-        //initialise and populate prediction array list
-        predictionModelArrayList = new ArrayList<PredictionModel>();
+//        ArrayList<ImageView> image_views = new ArrayList<>(image_urls.size());
         for (int i = 0; i < predictedWords.size(); i++) {
+            ImageView image_view = new ImageView(this);
             Glide.with(getApplicationContext())
                     .load(image_urls.get(i))
-                    .into(*image-view*);
-            predictionModelArrayList.add((new PredictionModel(predictedWords.get(i), *image-view*)));
+                    .into(image_view);
+//            image_views.add(image_view);
+            predictionModelArrayList.add((new PredictionModel(predictedWords.get(i), image_view)));
         }
 
         //make new adapter and apply to grid
@@ -746,8 +736,8 @@ public class MainActivity extends AppCompatActivity implements
 
 //        Log.d("no_sugg ", String.valueOf(store_nosugg));
 
-        //reset Predicted word grid (update font, fontsize, showing images, and number of sugg)
-        makeWordGrid(predictions);
+        //reset Predicted word grid (update font, fontsize, showing imagesg)
+        makeWordGrid(predictions, images);
 
         //Resume speech recognition
         resetSpeechRecognizer();

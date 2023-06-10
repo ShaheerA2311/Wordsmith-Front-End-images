@@ -68,7 +68,7 @@ public class PredictionGridAdapter extends ArrayAdapter<PredictionModel> {
 
 
         //get and check whether image should be shown
-        predicted_image.setImageResource(predictionModel.getImgid());
+        predicted_image = predictionModel.getImgid();
         if (store_img){
             predicted_image.setVisibility(View.VISIBLE);
         }
