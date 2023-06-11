@@ -155,6 +155,8 @@ public class MainActivity extends AppCompatActivity implements
             public void onClick(View view) {
                 returnedText.setText("Speak to start");
                 makeWordGrid(null, null);
+                ongoingSpeech="";
+
             }
         });
 
@@ -514,7 +516,9 @@ public class MainActivity extends AppCompatActivity implements
                 String key = keys.next();
                 if (!Pattern.matches("null", key)){
                      if (Pattern.matches("[ ]*[a-zA-Z']+[ ]*", key)) {
-                        asyncPredictions.add(key);
+                         if (!Pattern.matches("don|can|won|'t|'|'m", key)) {
+                             asyncPredictions.add(key);
+                         }
                      }
                 }
             }
@@ -523,7 +527,9 @@ public class MainActivity extends AppCompatActivity implements
                 String key = keys_second.next();
                 if (!Pattern.matches("null", key)) {
                     if (Pattern.matches("[ ]*[a-zA-Z']+[ ]*", key)) {
-                        asyncPredictions.add(key);
+                        if (!Pattern.matches("don|can|won|'t|'|'m", key)) {
+                            asyncPredictions.add(key);
+                        }
                     }
                 }
             }
@@ -532,7 +538,9 @@ public class MainActivity extends AppCompatActivity implements
                 String key = keys_third.next();
                 if (!Pattern.matches("null", key)){
                     if (Pattern.matches("[ ]*[a-zA-Z']+[ ]*", key)){
-                        asyncPredictions.add(key);
+                        if (!Pattern.matches("don|can|won|'t|'|'m", key)) {
+                            asyncPredictions.add(key);
+                        }
                     }
                 }
             }
