@@ -5,9 +5,6 @@
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/Wordsmith-Front-End-images.iml" filepath="$PROJECT_DIR$/.idea/modules/Wordsmith-Front-End-images.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/api/Wordsmith-Front-End-images.api.iml" filepath="$PROJECT_DIR$/.idea/modules/api/Wordsmith-Front-End-images.api.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Wordsmith-Front-End-images.app.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Wordsmith-Front-End-images.app.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Wordsmith-Front-End-images.app.androidTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Wordsmith-Front-End-images.app.androidTest.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Wordsmith-Front-End-images.app.main.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Wordsmith-Front-End-images.app.main.iml" />
-      <module fileurl="file://$PROJECT_DIR$/.idea/modules/app/Wordsmith-Front-End-images.app.unitTest.iml" filepath="$PROJECT_DIR$/.idea/modules/app/Wordsmith-Front-End-images.app.unitTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/client/Wordsmith-Front-End-images.client.iml" filepath="$PROJECT_DIR$/.idea/modules/client/Wordsmith-Front-End-images.client.iml" />
     </modules>
   </component>
